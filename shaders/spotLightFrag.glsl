@@ -79,9 +79,20 @@ void main(void)
 	// (Surface to light is negated because we want a light to surface vector here)
 	// light direction should be normalized in the vertex shader (processed less times)
 	float spotEffect = clamp(dot(normalize(-surfaceToLight), light.direction), 0, 1);
-	// Use the exponent on the spot effect
-	spotEffect = pow(spotEffect, light.exponent);
 
-	// Write final color value.
-	gl_FragColor = (light.color * ndotl * attenuation * spotEffect);
+	// the dot product of two normalized vectors is equal to the cosine of the angle between them.
+	// If our cosine is greater than the cosine of the light anagle, we are within the light volume, so write color
+	// If we don't do this, the light will appear on surfaces outside of the volume when looking through the volume.
+	if(spotEffect > cos(light.angle))
+	{
+		// Use the exponent on the spot effect
+		spotEffect = pow(spotEffect, light.exponent);
+
+		// Write final color value.
+		gl_FragColor = (light.color * ndotl * attenuation * spotEffect);
+	}
+	else
+	{
+		gl_FragColor = vec4(0);
+	}
 }
